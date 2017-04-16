@@ -16,13 +16,21 @@ The steps of this project are the following:
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image01]: ./examples/car_not_car.png
+[image10]: ./output_images/car_notcar.png
 [image02]: ./examples/HOG_example.jpg
 [image03]: ./examples/sliding_windows.jpg
-[image04]: ./examples/sliding_window.jpg
-[image05]: ./examples/bboxes_and_heat.png
+[image40]: ./output_images/pipeline0.png
+[image41]: ./output_images/pipeline1.png
+[image42]: ./output_images/pipeline2.png
+[image43]: ./output_images/pipeline3.png
+[image50]: ./output_images/search_with_heat0.png
+[image51]: ./output_images/search_with_heat1.png
+[image52]: ./output_images/search_with_heat2.png
+[image53]: ./output_images/search_with_heat3.png
+[image54]: ./output_images/search_with_heat4.png
+[image55]: ./output_images/search_with_heat5.png
 [image06]: ./examples/labels_map.png
-[image07]: ./examples/output_bboxes.png
+[image07]: ./output_images/pipeline5.png
 [video1]: ./vehicle_detection.mp4
 
 ### [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -35,13 +43,13 @@ Here I will consider the rubric points individually and describe how I addressed
   
 I started by reading in all the `vehicle` and `non-vehicle` images. The source code can be found in the cell under the **Load the data sets** title in the attached IPython notebook `vehicle-detection.ipynb`. Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
-![alt text][image1]
+![Car or NOT][image10]
 
 I then explored different color spaces and different HOG parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`). The source code is in the `single_img_features` and `get_hog_features` functions in the cell titled **Helper functions**.
 
 Here is an example using the `YCrCb` color space and HOG parameters of `orientations == 11`, `pixels_per_cell == 8`, `cells_per_block == 2` in all three channels.:
 
-![alt text][image2]
+## ![HOG][image2]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
@@ -65,6 +73,8 @@ False positives 0.23%
 False negatives 0.68%
 ```
 
+Features were scaled to zero mean. See **Normalization and randomization** cell. The test set is 20% of the labeled dataset.
+
 Using cv2.HOG kept me having *the same* feature extraction function for training the model and classifying the video frames. Subtle bugs hard to fix are prone to appear when slightly different functions are used when training and run time.
 
 ### Sliding Window Search
@@ -79,15 +89,19 @@ I tried several combinations of window scales and overlap. I started with a 96 p
 
 The functions `slide_window` and `search_windows` which implement this part can be found in the cell under the **Search windows** title.
 
-![alt text][image3]
+## ![Sliding Windows][image3]
+
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 The final test images show a good result detecting cars and no false positives. A trick I used to improve the classifier performance was to cache the creation of the `cv2.HOGDescriptor` function.
 
-![alt text][image4]
+![Pipeline][image40]
+![Pipeline][image41]
+![Pipeline][image42]
+![Pipeline][image43]
 
----
+----
 
 ### Video Implementation
 
@@ -104,19 +118,25 @@ I applied a similar technique during the video rendering where a threshold was a
 
 **Here are six frames and their corresponding heatmaps:**
 
-![alt text][image5]
+![With heatmap][image50]
+![With heatmap][image51]
+![With heatmap][image52]
+![With heatmap][image53]
+![With heatmap][image54]
+![With heatmap][image55]
 
-**Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames: **
 
-![alt text][image6]
+**Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:**
+
+## ![Labels][image6]
+
 
 **Here the resulting bounding boxes are drawn onto the last frame in the series:**
 
-![alt text][image7]
+![Bounding boxes][image07]
 
 
-
----
+----
 
 ### Discussion
 
