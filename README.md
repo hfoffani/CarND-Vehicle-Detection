@@ -1,7 +1,6 @@
 ---
 output:
   html_document: default
-  pdf_document: default
 ---
 
 # Vehicle Detection Project
@@ -17,14 +16,14 @@ The steps of this project are the following:
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
+[image01]: ./examples/car_not_car.png
+[image02]: ./examples/HOG_example.jpg
+[image03]: ./examples/sliding_windows.jpg
+[image04]: ./examples/sliding_window.jpg
+[image05]: ./examples/bboxes_and_heat.png
+[image06]: ./examples/labels_map.png
+[image07]: ./examples/output_bboxes.png
+[video1]: ./vehicle_detection.mp4
 
 ### [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 
@@ -33,63 +32,86 @@ Here I will consider the rubric points individually and describe how I addressed
 ### Histogram of Oriented Gradients (HOG)
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
-
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
-
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
+  
+I started by reading in all the `vehicle` and `non-vehicle` images. The source code can be found in the cell under the **Load the data sets** title in the attached IPython notebook `vehicle-detection.ipynb`. Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
 ![alt text][image1]
 
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
+I then explored different color spaces and different HOG parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`). The source code is in the `single_img_features` and `get_hog_features` functions in the cell titled **Helper functions**.
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
-
+Here is an example using the `YCrCb` color space and HOG parameters of `orientations == 11`, `pixels_per_cell == 8`, `cells_per_block == 2` in all three channels.:
 
 ![alt text][image2]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+I have tried several combinations. First I used RGB color space `orientations == 9` and while the accuracy was not bad it proved to be very slow. But I consider these parameters as my baseline for every other setup. I tested LUV color space but it generated negative numbers in some channel (probably a bug?) which makes `hog` generate NaN (not-a-number) and later breaks the classifier.
+
+I have also used Jupyter's line profiler a lot (there are reference in the notebook source code.) It showed me that most of the processing time was spent in `skimage.hog()`. That led me to change from skimage's hog to the one implemented in cv2.
+
+The final feature set consists of HOG over all three channels of `YCrCb` color space with `orientations == 11`, `pixels_per_cell == 8`, `cells_per_block == 2` plus the spatial features. Going from 9 to 11 orientations also allowed me to *avoid color histograms features* while keeping the same accuracy 99.1%
+
+This fecture vector has a length of 9,540.
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using...
+I have chosen the SVM algorithm because it is very fast at the classification step. Its training performance is quite good too provided the number of observations is not big. My 2008 PC handled a few thousands very well training 15,000 observations of 10,000 features in 40 seconds. It also shines when the labels in the dataset are balanced as is our case.
+
+The cells under the **Train and test Model** title contains the code for training the model, saving and loading for future use and testing the accuracy. It results in:
+
+```
+Test Accuracy of SVC = 99.10%
+False positives 0.23%
+False negatives 0.68%
+```
+
+Using cv2.HOG kept me having *the same* feature extraction function for training the model and classifying the video frames. Subtle bugs hard to fix are prone to appear when slightly different functions are used when training and run time.
 
 ### Sliding Window Search
 
-#### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
+#### 1. Describe how (and identify where in your code) you implemented a sliding window search. How did you decide what scales to search and how much to overlap windows?
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+I used 6 sampled images from a video with different light and objects conditions as a test bed. My priority was to keep false positive to a minimum while at the same time having boxes hitting the nearest cars. False positives do not have to be perfect though, a following step would take care of them.
+
+I restricted the search in a strip on the bottom half of the video frame. We do not expect to find cars flying above the horizon or resting over the hood (hopefully!).
+
+I tried several combinations of window scales and overlap. I started with a 96 pixels square window with 50% overlap and gradually added more scales (96, 128 and 256) and overlaps (70, 75). I finally settled with five scales (80, 96, 112, 128 and 160) and a 60% overlap.
+
+The functions `slide_window` and `search_windows` which implement this part can be found in the cell under the **Search windows** title.
 
 ![alt text][image3]
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+The final test images show a good result detecting cars and no false positives. A trick I used to improve the classifier performance was to cache the creation of the `cv2.HOGDescriptor` function.
 
 ![alt text][image4]
+
 ---
 
 ### Video Implementation
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+
+Here's a [link to my video result][video1]
 
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+For each sliding window that the classifier successfully detects a car I overlapped each box and created a heatmap. I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap assuming that each blob corresponded to a vehicle. I constructed bounding boxes to cover the area of each blob detected.
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
+I applied a similar technique during the video rendering where a threshold was applied: a zone is marked as containing a car if it was detected during 15 consecutive frames.
 
-### Here are six frames and their corresponding heatmaps:
+**Here are six frames and their corresponding heatmaps:**
 
 ![alt text][image5]
 
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
+**Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames: **
+
 ![alt text][image6]
 
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
+**Here the resulting bounding boxes are drawn onto the last frame in the series:**
+
 ![alt text][image7]
 
 
@@ -100,5 +122,11 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+The biggest problem I had was the slow rendering time. It makes tunning the algorithm a tedious and time consuming process.
+
+Obviously I would expect that my implmentation will suffer in night conditions. It will also fail to detect motorcycles and trucks as it has not been trained with these. Besides, in urban roads, other objects are expected so a lot of false positives and false negatives will appear.
+
+There are some easy steps to take to improve the speed of the rendering. Using only cv2 functions during feature extraction is one of them. A lot of time is wasted converting matrices from a 0-255 scale to a 0-1 and back. Currently there are 5 window scales, reducing to one or two will directly cut by half or by fifth the processing time.
+
+Also more training data is needed. Samples of motorcycles, trucks, light conditions will help a lot.
 
