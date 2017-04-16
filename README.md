@@ -26,14 +26,9 @@ The steps of this project are the following:
 [image07]: ./output_images/pipeline5.png
 [video1]: ./vehicle_detection.mp4
 
-### [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-
-Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
-
 ### Histogram of Oriented Gradients (HOG)
 
-#### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
-  
+
 I started by reading in all the `vehicle` and `non-vehicle` images. The source code can be found in the cell under the **Load the data sets** title in the attached IPython notebook `vehicle-detection.ipynb`. Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
 ![Car or NOT][image10]
@@ -43,17 +38,13 @@ I then explored different color spaces and different HOG parameters (`orientatio
 The one I am using is `YCrCb` color space and HOG parameters of `orientations == 11`, `pixels_per_cell == 8`, `cells_per_block == 2` in all three channels.
 
 
-#### 2. Explain how you settled on your final choice of HOG parameters.
-
-I have tried several combinations. First I used RGB color space `orientations == 9` and while the accuracy was not bad it proved to be very slow. But I consider these parameters as my baseline for every other setup. I tested LUV color space but it generated negative numbers in some channel (probably a bug?) which makes `hog` generate NaN (not-a-number) and later breaks the classifier.
+I have tried several combinations of HOG parameters. First I used RGB color space `orientations == 9` and while the accuracy was not bad it proved to be very slow. But I consider these parameters as my baseline for every other setup. I tested LUV color space but it generated negative numbers in some channel (probably a bug?) which makes `hog` generate NaN (not-a-number) and later breaks the classifier.
 
 I have also used Jupyter's line profiler a lot (there are reference in the notebook source code.) It showed me that most of the processing time was spent in `skimage.hog()`. That led me to change from skimage's hog to the one implemented in cv2.
 
 The final feature set consists of HOG over all three channels of `YCrCb` color space with `orientations == 11`, `pixels_per_cell == 8`, `cells_per_block == 2` plus the spatial features. Going from 9 to 11 orientations also allowed me to *avoid color histograms features* while keeping the same accuracy 99.1%
 
 This fecture vector has a length of 9,540.
-
-#### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
 I have chosen the SVM algorithm because it is very fast at the classification step. Its training performance is quite good too provided the number of observations is not big. My 2008 PC handled a few thousands very well training 15,000 observations of 10,000 features in 40 seconds. It also shines when the labels in the dataset are balanced as is our case.
 
@@ -71,11 +62,9 @@ Using cv2.HOG kept me having *the same* feature extraction function for training
 
 ### Sliding Window Search
 
-#### 1. Describe how (and identify where in your code) you implemented a sliding window search. How did you decide what scales to search and how much to overlap windows?
-
 I used 6 sampled images from a video with different light and objects conditions as a test bed. My priority was to keep false positive to a minimum while at the same time having boxes hitting the nearest cars. False positives do not have to be perfect though, a following step would take care of them.
 
-I restricted the search in a strip on the bottom half of the video frame. We do not expect to find cars flying above the horizon or resting over the hood (hopefully!).
+I restricted the search of the sliding windows within a strip on the bottom half of the video frame. We do not expect to find cars flying above the horizon or resting over the hood (hopefully!).
 
 I tried several combinations of window scales and overlap. I started with a 96 pixels square window with 50% overlap and gradually added more scales (96, 128 and 256) and overlaps (70, 75). I finally settled with five scales (80, 96, 112, 128 and 160) and a 60% overlap.
 
@@ -83,8 +72,6 @@ The functions `slide_window` and `search_windows` which implement this part can 
 
 ![Sliding Windows][image03]
 
-
-#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 The final test images show a good result detecting cars and no false positives. A trick I used to improve the classifier performance was to cache the creation of the `cv2.HOGDescriptor` function.
 
@@ -97,12 +84,8 @@ The final test images show a good result detecting cars and no false positives. 
 
 ### Video Implementation
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-
 Here's a [link to my video result][video1]
 
-
-#### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
 For each sliding window that the classifier successfully detects a car I overlapped each box and created a heatmap. I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap assuming that each blob corresponded to a vehicle. I constructed bounding boxes to cover the area of each blob detected.
 
@@ -126,8 +109,6 @@ I applied a similar technique during the video rendering where a threshold was a
 ----
 
 ### Discussion
-
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 The biggest problem I had was the slow rendering time. It makes tunning the algorithm a tedious and time consuming process.
 
