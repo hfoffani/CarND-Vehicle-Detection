@@ -17,8 +17,7 @@ The steps of this project are the following:
 
 [//]: # (Image References)
 [image10]: ./output_images/car_notcar.png
-[image02]: ./examples/HOG_example.jpg
-[image03]: ./examples/sliding_windows.jpg
+[image03]: ./output_images/sliding-windows.png
 [image40]: ./output_images/pipeline0.png
 [image41]: ./output_images/pipeline1.png
 [image42]: ./output_images/pipeline2.png
@@ -47,9 +46,8 @@ I started by reading in all the `vehicle` and `non-vehicle` images. The source c
 
 I then explored different color spaces and different HOG parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`). The source code is in the `single_img_features` and `get_hog_features` functions in the cell titled **Helper functions**.
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations == 11`, `pixels_per_cell == 8`, `cells_per_block == 2` in all three channels.:
+The one I am using is `YCrCb` color space and HOG parameters of `orientations == 11`, `pixels_per_cell == 8`, `cells_per_block == 2` in all three channels.
 
-## ![HOG][image2]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
@@ -89,7 +87,7 @@ I tried several combinations of window scales and overlap. I started with a 96 p
 
 The functions `slide_window` and `search_windows` which implement this part can be found in the cell under the **Search windows** title.
 
-## ![Sliding Windows][image3]
+![Sliding Windows][image03]
 
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
