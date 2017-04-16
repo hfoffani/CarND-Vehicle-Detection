@@ -28,7 +28,6 @@ The steps of this project are the following:
 [image53]: ./output_images/search_with_heat3.png
 [image54]: ./output_images/search_with_heat4.png
 [image55]: ./output_images/search_with_heat5.png
-[image06]: ./examples/labels_map.png
 [image07]: ./output_images/pipeline5.png
 [video1]: ./vehicle_detection.mp4
 
@@ -114,7 +113,7 @@ For each sliding window that the classifier successfully detects a car I overlap
 
 I applied a similar technique during the video rendering where a threshold was applied: a zone is marked as containing a car if it was detected during 15 consecutive frames.
 
-**Here are six frames and their corresponding heatmaps:**
+**Here are six frames and their corresponding heatmaps with label heatmap boxes:**
 
 ![With heatmap][image50]
 ![With heatmap][image51]
@@ -122,11 +121,6 @@ I applied a similar technique during the video rendering where a threshold was a
 ![With heatmap][image53]
 ![With heatmap][image54]
 ![With heatmap][image55]
-
-
-**Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:**
-
-## ![Labels][image6]
 
 
 **Here the resulting bounding boxes are drawn onto the last frame in the series:**
