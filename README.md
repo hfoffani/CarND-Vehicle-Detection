@@ -84,7 +84,8 @@ The final test images show a good result detecting cars and no false positives. 
 
 ### Video Implementation
 
-Here's a [link to my video result][video1]
+
+[![Click to view!](https://img.youtube.com/vi/FUPRVKCp3iI/0.jpg)](https://www.youtube.com/watch?v=FUPRVKCp3iI)
 
 
 For each sliding window that the classifier successfully detects a car I overlapped each box and created a heatmap. I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap assuming that each blob corresponded to a vehicle. I constructed bounding boxes to cover the area of each blob detected.
