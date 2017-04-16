@@ -1,8 +1,3 @@
----
-output:
-  html_document: default
----
-
 # Vehicle Detection Project
 
 The steps of this project are the following:
